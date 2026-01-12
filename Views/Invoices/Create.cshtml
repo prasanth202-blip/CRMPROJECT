@@ -1,0 +1,307 @@
+@model CRM.Models.InvoiceModel
+@{
+    ViewData["Title"] = "Create Invoice";
+}
+
+<style>
+    .create-invoice-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    .section-body {
+        padding: 2rem;
+    }
+    .submit-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+    }
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+    }
+    @@media (max-width: 768px) {
+        .section-body { padding: 1rem; }
+    }
+</style>
+
+<div class="content create-invoice-container">
+    <!-- Breadcrumb -->
+    <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/Home/Index">Home</a></li>
+            <li class="breadcrumb-item"><a href="/Invoices/Index">Invoices</a></li>
+            <li class="breadcrumb-item active">Create New</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2><i class="fa-solid fa-file-invoice me-2 text-primary"></i>Create New Invoice</h2>
+        <p class="text-muted">Generate a new invoice for a booking or installment</p>
+    </div>
+
+    <form asp-action="Create" method="post" id="invoiceForm" onsubmit="return submitInvoiceForm(event)">
+        <!-- Booking Selection -->
+        <div class="section-card mb-4">
+            <div class="section-header">
+                <i class="fa-solid fa-link me-2"></i>Select Booking
+            </div>
+            <div class="section-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="BookingId" class="form-label">Booking</label>
+                        <select asp-for="BookingId" class="form-select" id="bookingSelect" required>
+                            <option value="">-- Select Booking --</option>
+                            @if (ViewBag.AllBookings != null)
+                            {
+                                foreach (var booking in ViewBag.AllBookings)
+                                {
+                                    var lead = booking.Lead?.Name ?? "";
+                                    var property = booking.Property?.PropertyName ?? "";
+                                    <option value="@booking.BookingId">@booking.BookingNumber - @lead - @property</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="BookingId" class="text-danger"></span>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mt-2" id="bookingDetails" style="display:none">
+                    <div class="col-md-6">
+                        <div class="card p-3">
+                            <h6 class="mb-2">Booking Details</h6>
+                            <div class="mb-1"><strong>Lead:</strong> <span id="leadName"></span></div>
+                            <div class="mb-1"><strong>Property:</strong> <span id="propertyName"></span></div>
+                            <div><strong>Flat:</strong> <span id="flatName"></span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6" id="milestoneSection" style="display: none;">
+                        <label for="milestoneSelect" class="form-label">Milestone</label>
+                        <select class="form-select mb-2" id="milestoneSelect" disabled>
+                            <option value="">-- Select Milestone --</option>
+                        </select>
+                        <div class="text-danger" id="noMilestoneMsg" style="display:none;">No pending milestones available for this booking.</div>
+                        <div class="card p-3" id="milestoneDetails" style="display:none">
+                            <h6 class="mb-2">Milestone Details</h6>
+                            <div class="mb-1"><strong>Name:</strong> <span id="milestoneName"></span></div>
+                            <div class="mb-1"><strong>Due Date:</strong> <span id="milestoneDueDate"></span></div>
+                            <div class="mb-1"><strong>Amount:</strong> <span id="milestoneAmount"></span></div>
+                            <div><strong>Status:</strong> <span id="milestoneStatus"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Invoice Details -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-file-invoice me-2"></i>Invoice Details
+            </div>
+            <div class="section-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="InvoiceNumber" class="form-label"></label>
+                        <input type="text" class="form-control" readonly value="@((ViewBag.InvoicePrefix ?? "") + (Model.InvoiceNumber ?? ""))" />
+                        <input type="hidden" asp-for="InvoiceNumber" value="@((ViewBag.InvoicePrefix ?? "") + (Model.InvoiceNumber ?? ""))" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="InvoiceDate" class="form-label"></label>
+                        <input asp-for="InvoiceDate" type="date" class="form-control" />
+                        <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Amount" class="form-label"></label>
+                        <input asp-for="Amount" class="form-control" id="amountInput" autocomplete="off" />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="TaxAmount" class="form-label"></label>
+                        <input asp-for="TaxAmount" class="form-control" id="taxAmountInput" readonly />
+                        <span asp-validation-for="TaxAmount" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="TotalAmount" class="form-label"></label>
+                        <input asp-for="TotalAmount" class="form-control" id="totalAmountInput" readonly />
+                        <span asp-validation-for="TotalAmount" class="text-danger"></span>
+                    </div>
+                    <!-- PaidAmount is managed by payments, not entered here -->
+                    <div class="col-md-6">
+                        <label asp-for="DueDate" class="form-label"></label>
+                        <input asp-for="DueDate" type="date" class="form-control" value="@((Model.DueDate < new DateTime(1753,1,1) || Model.DueDate > new DateTime(9999,12,31)) ? DateTime.Today.ToString("yyyy-MM-dd") : Model.DueDate.ToString("yyyy-MM-dd"))" />
+                        <span asp-validation-for="DueDate" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label"></label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Generated">Generated</option>
+                            <option value="Sent">Sent</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Overdue">Overdue</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-note-sticky me-2"></i>Notes
+            </div>
+            <div class="section-body">
+                <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Additional invoice notes..."></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center mb-5">
+            <button type="submit" class="btn btn-primary submit-btn">
+                <i class="fa-solid fa-check me-2"></i>Create Invoice
+            </button>
+        </div>
+    </form>
+
+    <script>
+        // No tax calculation - amounts already include tax from milestone
+        function calculateInvoiceAmounts() {
+            var amount = parseFloat(document.getElementById('amountInput').value) || 0;
+            document.getElementById('taxAmountInput').value = 0;
+            document.getElementById('totalAmountInput').value = amount;
+        }
+        document.getElementById('amountInput').addEventListener('input', calculateInvoiceAmounts);
+        window.addEventListener('DOMContentLoaded', calculateInvoiceAmounts);
+
+        // Booking details and milestones display
+        document.getElementById('bookingSelect').addEventListener('change', function() {
+            var bookingId = this.value;
+            var milestoneSelect = document.getElementById('milestoneSelect');
+            var milestoneSection = document.getElementById('milestoneSection');
+            
+            milestoneSelect.innerHTML = '<option value="">-- Select Milestone --</option>';
+            milestoneSelect.disabled = true;
+            document.getElementById('milestoneDetails').style.display = 'none';
+            document.getElementById('noMilestoneMsg').style.display = 'none';
+            
+            if (!bookingId) {
+                document.getElementById('bookingDetails').style.display = 'none';
+                milestoneSection.style.display = 'none';
+                return;
+            }
+            
+            fetch('/Invoices/GetBookingDetails?bookingId=' + bookingId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('leadName').textContent = data.leadName || '';
+                        document.getElementById('propertyName').textContent = data.propertyName || '';
+                        document.getElementById('flatName').textContent = data.flatName || '';
+                        document.getElementById('bookingDetails').style.display = 'block';
+                        
+                        // Show/hide milestone section based on payment type
+                        if (data.paymentType === 'Full Payment' || data.paymentType === 'FullPayment') {
+                            milestoneSection.style.display = 'none';
+                        } else {
+                            milestoneSection.style.display = 'block';
+                            
+                            // Load milestones for EMI bookings
+                            if (data.milestones && data.milestones.length > 0) {
+                                milestoneSelect.disabled = false;
+                                data.milestones.forEach(function(m) {
+                                    var option = document.createElement('option');
+                                    option.value = m.installmentId;
+                                    option.text = m.milestoneName + ' - ₹' + m.amount.toLocaleString();
+                                    option.setAttribute('data-amount', m.amount);
+                                    option.setAttribute('data-duedate', m.dueDate);
+                                    option.setAttribute('data-status', m.status);
+                                    milestoneSelect.appendChild(option);
+                                });
+                            } else {
+                                document.getElementById('noMilestoneMsg').style.display = 'block';
+                            }
+                        }
+                    } else {
+                        document.getElementById('bookingDetails').style.display = 'none';
+                        milestoneSection.style.display = 'none';
+                    }
+                });
+        });
+
+        // Milestone selection and auto-fill amount
+        document.getElementById('milestoneSelect').addEventListener('change', function() {
+            var selected = this.options[this.selectedIndex];
+            if (!selected.value) {
+                document.getElementById('milestoneDetails').style.display = 'none';
+                document.getElementById('amountInput').value = '';
+                calculateInvoiceAmounts();
+                return;
+            }
+            var name = selected.text.split(' - ')[0];
+            var amount = selected.getAttribute('data-amount');
+            var dueDate = selected.getAttribute('data-duedate');
+            var status = selected.getAttribute('data-status');
+            document.getElementById('milestoneName').textContent = name;
+            document.getElementById('milestoneAmount').textContent = '₹' + parseFloat(amount).toLocaleString();
+            document.getElementById('milestoneDueDate').textContent = dueDate;
+            document.getElementById('milestoneStatus').textContent = status;
+            document.getElementById('milestoneDetails').style.display = 'block';
+            document.getElementById('amountInput').value = amount;
+            // Set hidden installment ID for form submission
+            var installmentIdInput = document.getElementById('installmentIdInput');
+            if (!installmentIdInput) {
+                installmentIdInput = document.createElement('input');
+                installmentIdInput.type = 'hidden';
+                installmentIdInput.name = 'InstallmentId';
+                installmentIdInput.id = 'installmentIdInput';
+                document.getElementById('invoiceForm').appendChild(installmentIdInput);
+            }
+            installmentIdInput.value = selected.value;
+            calculateInvoiceAmounts();
+        });
+
+        // AJAX submit and redirect on success
+        function submitInvoiceForm(event) {
+            event.preventDefault();
+            var form = document.getElementById('invoiceForm');
+            var formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/Invoices/Index';
+                } else {
+                    alert(data.message || 'Error creating invoice');
+                }
+            })
+            .catch(() => {
+                alert('Error creating invoice');
+            });
+            return false;
+        }
+    </script>
+</div>
