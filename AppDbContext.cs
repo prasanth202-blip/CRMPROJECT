@@ -1,4 +1,4 @@
-﻿using CRM.Models;
+using CRM.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM
