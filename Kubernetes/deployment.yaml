@@ -15,8 +15,8 @@ spec:
         app: crm
     spec:
       containers:
-       - name: crm
-         image: prasanth202/crmproject:latest
+       - name: crms
+         image: prasanth202/crm:latest
          ports:
          - containerPort: 3000
 
