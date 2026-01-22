@@ -15,7 +15,7 @@ spec:
         app: crm
     spec:
       containers:
-       - name: crms
+       - name: crm
          image: crm-image-demo:v1
          ports:
          - containerPort: 80
