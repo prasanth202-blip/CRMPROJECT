@@ -19,4 +19,6 @@ spec:
          image: prasanth202/crm-image-demo1:latest
          ports:
          - containerPort: 80
+       imagePullSecrets:
+       - name: demo4
 
