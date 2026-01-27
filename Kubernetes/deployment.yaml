@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
        - name: crm
-         image: prasanth202/ubuntu-image-demo:latest
+         image: prasanth202/crm:latest
          ports:
          - containerPort: 80
 
