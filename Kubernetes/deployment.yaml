@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: crm-app-deployment
+  name: dotnet-app-deployment
   labels:
-    app: crm-app
+    app: dotnet-app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: crm-app
+      app: dotnet-app
   template:
     metadata:
       labels:
-        app: crm-app
+        app: dotnet-app
     spec:
       containers:
-       - name: crm-app
+       - name: dotnet-app
          image: prasanth202/crm-image-demo1:latest
          ports:
          - containerPort: 80
        imagePullSecrets:
-       - name: demo4
+       - name: demo
 
