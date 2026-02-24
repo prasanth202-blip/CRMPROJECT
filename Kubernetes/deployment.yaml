@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
        - name: dotnet-app
-         image: prasanth202/crm-image-demo1:latest
+         image: prasanth202/zomato:latest
          ports:
          - containerPort: 80
 
