@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
        - name: dotnet-app
-         image: prasanth202/dotnet-image:latest
+         image: prasanth202/crm-image-demo1:latest
          ports:
          - containerPort: 80
 
