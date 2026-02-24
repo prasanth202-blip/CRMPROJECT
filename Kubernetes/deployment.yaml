@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: deployment
 metadata:
   name: dotnet-app-deployment
   labels:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
        - name: dotnet-app
-         image: prasanth202/zomato:latest
+         image: prasanth202/dotnet-image:latest
          ports:
          - containerPort: 80
 
