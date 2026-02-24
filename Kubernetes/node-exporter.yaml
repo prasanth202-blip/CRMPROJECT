@@ -3,7 +3,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: node-exporter
-  namespace: dotnet-ns
+  namespace: prometheus-node-exporter
 spec:
   selector:
       app: node-exporter
