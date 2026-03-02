@@ -32,3 +32,23 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+deploy:
+   name: Deploy to Azure
+   runs-on: windows-latest
+   needs: [build and test]
+
+
+   steps:
+    -name: Download artifact from build jobs
+     uses: actions/download-artifact@v4
+     with:
+       name: webapp
+       path: ${(env.AZURE_WEBAPP_PACKAGE_PATH)}
+
+    -name: Deploy
+     users: azure/webapp-deploy@v4
+     with:
+       app-name: ${(env.AZURE-WEBAPPNAME)}
+       publish-profile: ${(secrets.AZURE_WEBAPP_PUBLISH_PROFILE)}
+       package: "${(env.AZURE_WEBAPP_PACKAGE_PATH)}"
